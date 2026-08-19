@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api-capture-assistant.local/schemas/task-envelope-1.0.json",
+  "title": "接口现场助手任务信封",
+  "type": "object",
+  "required": ["protocolVersion", "source", "task", "target", "evidence"],
+  "properties": {
+    "protocolVersion": { "const": "1.0" },
+    "source": { "type": "object" },
+    "task": { "type": "object" },
+    "target": {
+      "type": "object",
+      "required": ["projectPath"],
+      "properties": {
+        "projectPath": { "type": "string", "minLength": 1 },
+        "targetBranch": { "type": "string" },
+        "testCommand": { "type": "string" },
+        "requestNote": { "type": "string" }
+      }
+    },
+    "evidence": { "type": "object" }
+  },
+  "additionalProperties": true
+}

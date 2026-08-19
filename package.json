@@ -1,0 +1,22 @@
+{
+  "name": "api-capture-assistant",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "companion",
+    "harness-plugin",
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "node companion/src/native-harness/launcher.js",
+    "check": "node companion/src/diagnostics/check-environment.js",
+    "build:portable": "node scripts/build-portable.js",
+    "build:portable:macos": "node scripts/build-macos-portable.js",
+    "smoke:portable": "node scripts/smoke-portable.js",
+    "test": "node --test companion/tests/*.test.js tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.19"
+  }
+}

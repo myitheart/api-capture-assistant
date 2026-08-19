@@ -1,0 +1,10 @@
+{
+  "name": "@api-capture-assistant/harness-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "runtime/index.js",
+  "exports": {
+    ".": "./runtime/index.js"
+  }
+}

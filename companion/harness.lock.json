@@ -1,0 +1,12 @@
+{
+  "bridgeProtocolVersion": "1.0",
+  "evidenceProtocolVersion": "1.0",
+  "chatDraftProtocolVersion": "1.0",
+  "upstreamCommit": "47f943859bef60e4160492346772ded9b24f765a",
+  "forkCommit": "a80e03c65fd15529b80521112e6d0300d8e32eae",
+  "harnessVersion": "0.3.0",
+  "targets": [
+    { "platform": "win32", "arch": "x64" },
+    { "platform": "darwin", "arch": "arm64" }
+  ]
+}

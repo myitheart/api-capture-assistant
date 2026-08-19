@@ -1,2 +1,12 @@
-# The browser extension is maintained in its own Git repository.
-/extensions/
+# Local runtime and credentials
+/companion/config.local.json
+/companion/.runtime/
+/dist/
+*.log
+*.pid
+.env
+.env.*
+!.env.example
+/.tmp-api-capture-home*/
+/evidence/
+/tasks/

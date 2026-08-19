@@ -1,0 +1,7 @@
+{
+  "name": "@api-capture-assistant/delivery-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js"
+}

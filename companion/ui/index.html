@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DeepSeek Harness · 接口现场助手</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <aside class="sidebar" aria-label="会话侧边栏">
+    <div class="brand-row">
+      <button id="brandBtn" class="brand" type="button" title="新建会话" aria-label="DeepSeek Harness">
+        <svg class="fish-logo" viewBox="0 0 23.16 17.04" aria-hidden="true"><path d="M22.92 1.43c-.25-.12-.35.11-.5.23-.49.52-.91.76-1.46.73-.8-.04-1.48.21-2.08.82-.13-.75-.56-1.2-1.21-1.49-.6-.27-.84-.64-1.21-1.37-.08-.16-.16-.32-.34-.32-.19-.03-.27.13-.34.27-.3.55-.42 1.16-.41 1.78.03 1.38.61 2.49 1.77 3.27.14.09.17.18.13.31-.08.27-.17.53-.26.8-.05.18-.13.22-.31.14-.64-.27-1.19-.66-1.68-1.14-.83-.8-1.58-1.68-2.51-2.37-.22-.16-.44-.31-.67-.45-.95-.93.13-1.68.38-1.77.26-.1.09-.42-.75-.42-.84 0-1.61.29-2.59.66-.15.06-.3.1-.45.14-.89-.17-1.82-.21-2.78-.1-1.82.2-3.27 1.06-4.34 2.53C.08 5.41-.22 7.42.15 9.51c.39 2.2 1.51 4.03 3.24 5.45 1.79 1.48 3.86 2.21 6.21 2.07 1.43-.08 3.02-.27 4.82-1.79.45.22.93.31 1.72.38.61.05 1.19-.04 1.64-.13.71-.15.66-.81.41-.93-2.08-.97-1.63-.57-2.04-.89 1.06-1.25 2.67-3.47 3.17-6.5.05-.33.11-.8.1-1.07 0-.17.04-.23.23-.25.52-.06 1.02-.2 1.49-.46 1.35-.74 1.89-1.95 2.02-3.4.02-.22 0-.45-.24-.56ZM11.17 14.47c-2.01-1.58-2.99-2.1-3.39-2.08-.38.02-.31.46-.23.74.09.28.2.47.36.71.11.17.19.41-.11.58-.65.41-1.78-.13-1.83-.16-1.31-.77-2.41-1.79-3.19-3.19-.74-1.34-1.18-2.79-1.25-4.33-.02-.37.09-.5.46-.57.49-.09.99-.11 1.48-.04 2.05.31 3.8 1.23 5.27 2.69.84.83 1.47 1.82 2.13 2.78.69 1.03 1.44 2.01 2.39 2.82.34.28.61.49.86.65-.77.09-2.06.11-2.95-.59Z" fill="currentColor"/></svg>
+        <span class="deepseek-word">deepseek</span><span class="harness-badge">HARNESS</span>
+      </button><button id="collapseBtn" class="icon-button panel-toggle" type="button" title="收起侧边栏">◧</button>
+    </div>
+    <button id="newSessionBtn" class="new-session" type="button"><span>⊕</span><span class="wide-label">新会话</span></button>
+    <section class="workspace-browser">
+      <div class="workspace-heading"><span class="wide-label">工作区</span><div class="workspace-tools wide-label"><button id="searchBtn" class="icon-button" type="button" title="搜索会话">⌕</button><button id="refreshBtn" class="icon-button" type="button" title="刷新">↻</button></div></div>
+      <label id="searchBox" class="search-box" hidden><span>⌕</span><input id="taskSearch" type="search" placeholder="搜索会话"></label>
+      <div id="taskList" class="task-list" role="tree" aria-label="会话"><div class="sidebar-empty">暂无会话</div></div>
+    </section>
+    <div class="sidebar-footer"><div id="healthBadge" class="service-dot pending" title="正在检查本地服务"><span></span><span class="wide-label">正在检查服务…</span></div><button id="settingsBtn" class="settings-button" type="button"><span>⚙</span><span class="wide-label">设置</span></button></div>
+  </aside>
+
+  <main class="main-column">
+    <section id="emptyState" class="empty-session"><div class="empty-brand">HARNESS</div><h1>开始一个接口现场会话</h1><p>请从浏览器插件发送产品录制或研发抓包任务。现场需求与证据会自动成为对话上下文，不需要再次复制。</p><button id="emptySettingsBtn" class="soft-button" type="button">检查本地设置</button></section>
+    <section id="taskDetail" class="session" hidden>
+      <header class="session-header">
+        <div class="title-row"><div class="session-title-group"><strong id="taskName">未命名会话</strong><span class="title-separator">·</span><span id="sourceMode" class="session-mode">标准模式</span><span id="taskStatus" class="session-status"></span></div><button id="downloadLogBtn" class="session-log-button" type="button">Session log <span>⇩</span></button></div>
+        <div class="session-tabs" role="tablist"><button class="session-tab active" data-panel="chat" role="tab" aria-selected="true">对话</button><button class="session-tab" data-panel="trajectory" role="tab" aria-selected="false">轨迹</button></div>
+      </header>
+      <div id="warningBox" class="top-notice" hidden></div>
+
+      <section id="panel-chat" class="view-panel chat-panel active">
+        <div id="conversationScroll" class="conversation-scroll"><div id="conversation" class="conversation-column"></div></div>
+        <div class="composer-seat">
+          <section id="approvalCard" class="approval-card" hidden><div><strong>只读分析已完成</strong><span>确认结论后，可授权 Harness 仅在独立 Worktree 中修改。</span></div><button id="modifyBtn" class="approve-button" type="button">授权并开始修改</button></section>
+          <section id="runCard" class="run-strip" hidden><div class="run-primary"><span id="runPulse" class="run-pulse"></span><strong id="runTitle">运行状态</strong><span id="runPhase"></span><time id="runElapsed">--</time></div><div class="run-secondary"><span>超时 <b id="runRemaining">--</b></span><span>活动 <b id="runActivity">--</b></span><span id="runHeartbeat">--</span><button id="cancelBtn" type="button">停止</button></div></section>
+          <form id="chatForm" class="composer-card"><div id="evidencePopover" class="evidence-popover" hidden></div><textarea id="chatInput" rows="1" maxlength="12000" placeholder="给研发助手发送消息"></textarea><div class="composer-toolbar"><div class="composer-tools"><button id="evidenceBtn" class="circle-tool" type="button" title="查看随会话带入的现场证据">＋</button><button id="permissionBtn" class="mode-button" type="button"><span id="permissionLabel">Read Only</span><span>⌄</span></button></div><div class="composer-actions"><span id="modelLabel" class="model-label">DeepSeek</span><span class="chevron">⌄</span><button id="analyzeBtn" class="send-button" type="submit" aria-label="发送">↑</button></div></div></form>
+          <div id="chatStats" class="chat-stats">现场证据已就绪 · 首条消息发送后才消耗 Token</div>
+        </div>
+      </section>
+
+      <section id="panel-trajectory" class="view-panel trajectory-panel">
+        <div class="trajectory-toolbar"><div><strong>运行轨迹</strong><span>分析、工具调用、测试与 Git 操作</span></div><button id="openProjectBtn" class="soft-button" type="button">复制 Worktree 路径</button></div>
+        <div class="trajectory-content">
+          <section class="trajectory-summary"><div><span>项目</span><strong id="repoPath">-</strong><small id="repoState"></small></div><div><span>分支</span><strong id="targetBranch">-</strong><small id="baseCommit"></small></div><div><span>证据</span><strong id="evidenceCount">-</strong><small id="taskMeta"></small></div></section>
+          <section class="trace-block"><header><h2>会话运行</h2><span id="runFinishSummary">尚未运行</span></header><div class="run-metrics"><div><span>当前阶段</span><strong id="traceRunPhase">等待开始</strong></div><div><span>运行心跳</span><strong id="traceHeartbeat">--</strong></div><div><span>最后活动</span><strong id="traceActivity">--</strong></div><div><span>总耗时</span><strong id="traceElapsed">--</strong></div></div></section>
+          <section class="trace-block"><header><h2>运行日志</h2></header><div id="logTimeline" class="log-timeline"><div class="trace-empty">暂无运行日志</div></div></section>
+          <section class="trace-block"><header><h2>代码修改</h2><span id="worktreeMeta">尚未创建 Worktree</span></header><pre id="modifyOutput" class="code-output">尚未开始修改。</pre><pre id="diffOutput" class="code-output diff-output">尚无代码改动。</pre></section>
+          <section class="trace-block"><header><h2>测试结果</h2></header><pre id="testOutput" class="code-output">尚未运行测试。</pre></section>
+          <section id="deliveryActions" class="delivery-actions"><div><label for="commitMessage">提交说明</label><input id="commitMessage" value="feat: implement captured requirement" maxlength="200"></div><button id="commitBtn" class="primary-action" type="button">创建提交</button><button id="mergeBtn" class="primary-action" type="button">合并到目标分支</button><button id="cleanupBtn" class="soft-button" type="button">安全清理 Worktree</button><button id="discardBtn" class="danger-button" type="button">放弃修改并清理</button></section>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<dialog id="settingsDialog" class="settings-dialog"><form method="dialog" class="dialog-head"><div><strong>设置</strong><span>配置只保存在本机</span></div><button value="close" aria-label="关闭">×</button></form><form id="configForm" class="settings-form"><section><h2>模型</h2><label>DeepSeek API Key<input id="apiKey" type="password" autocomplete="off" placeholder="已配置时留空表示不修改"></label><label>模型<input id="model" value="deepseek-v4-flash"></label><label>Base URL<input id="baseUrl" value="https://api.deepseek.com"></label></section><section><h2>运行超时</h2><div class="timeout-grid"><label>只读分析（分钟）<input id="analysisTimeout" type="number" min="1" max="240" value="30"></label><label>代码修改（分钟）<input id="modifyTimeout" type="number" min="1" max="240" value="60"></label><label>测试命令（分钟）<input id="testTimeout" type="number" min="1" max="240" value="30"></label></div></section><section><h2>环境</h2><button id="environmentBtn" class="soft-button" type="button">检查运行环境</button><pre id="environmentOutput" class="environment-output">尚未检查。</pre></section><div class="dialog-actions"><button class="primary-action" type="submit">保存设置</button></div></form></dialog>
+<div id="toast" class="toast" hidden></div><script type="module" src="app.js"></script>
+</body></html>

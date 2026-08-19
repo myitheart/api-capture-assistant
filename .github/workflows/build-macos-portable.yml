@@ -1,0 +1,127 @@
+name: Build macOS Apple Silicon portable package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      CI: "true"
+      DSH_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout Companion
+        uses: actions/checkout@v6
+        with:
+          path: api-capture-assistant
+
+      - name: Read pinned Harness commit
+        id: harness-lock
+        working-directory: api-capture-assistant
+        shell: bash
+        run: |
+          node -e 'const lock=require("./companion/harness.lock.json"); if(!/^[0-9a-f]{40}$/.test(lock.forkCommit||"")) process.exit(1); process.stdout.write(`ref=${lock.forkCommit}\n`)' >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Harness Fork
+        uses: actions/checkout@v6
+        with:
+          repository: myitheart/api-capture-harness
+          ref: ${{ steps.harness-lock.outputs.ref }}
+          path: api-capture-harness
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Set up pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          node --version
+          pnpm --version
+          uname -m
+
+      - name: Install Harness dependencies
+        working-directory: api-capture-harness
+        run: pnpm install --frozen-lockfile
+
+      - name: Test API Capture Harness integration
+        working-directory: api-capture-harness
+        run: >-
+          pnpm exec vitest run
+          scripts/api-capture-target.spec.ts
+          packages/client/api-capture-draft/tests
+          packages/host/api-capture-evidence/tests
+          packages/fs/tool-fs/tests/tools.spec.ts
+
+      - name: Build Harness darwin-arm64 runtime
+        working-directory: api-capture-harness
+        run: pnpm run build:api-capture-web
+
+      - name: Test Companion
+        working-directory: api-capture-assistant
+        run: npm test
+
+      - name: Build macOS portable app
+        working-directory: api-capture-assistant
+        env:
+          API_CAPTURE_HARNESS_DIST: ${{ github.workspace }}/api-capture-harness/dist/api-capture-harness-darwin-arm64
+        run: npm run build:portable:macos
+
+      - name: Smoke test native Harness protocols
+        working-directory: api-capture-assistant
+        env:
+          API_CAPTURE_PORTABLE_ROOT: ${{ github.workspace }}/api-capture-assistant/dist/api-capture-companion-macos-arm64
+        run: npm run smoke:portable
+
+      - name: Smoke test macOS launcher
+        working-directory: api-capture-assistant
+        shell: bash
+        env:
+          API_CAPTURE_HOME: ${{ runner.temp }}/api-capture-app-home
+          API_CAPTURE_LOG_HOME: ${{ runner.temp }}/api-capture-app-logs
+          API_CAPTURE_NO_OPEN: "1"
+        run: |
+          "dist/api-capture-companion-macos-arm64/接口现场助手.app/Contents/MacOS/ApiCaptureLauncher" --smoke-test
+
+      - name: Verify app bundle and archive
+        working-directory: api-capture-assistant
+        shell: bash
+        run: |
+          APP="dist/api-capture-companion-macos-arm64/接口现场助手.app"
+          file "$APP/Contents/MacOS/ApiCaptureLauncher" | grep arm64
+          plutil -lint "$APP/Contents/Info.plist"
+          codesign --verify --deep --strict "$APP"
+          test -x "dist/api-capture-companion-macos-arm64/诊断并启动.command"
+          test -x "dist/api-capture-companion-macos-arm64/停止全部服务.command"
+          cd dist
+          shasum -a 256 -c "api-capture-companion-macos-arm64.zip.sha256"
+
+      - name: Upload macOS portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-capture-companion-macos-arm64
+          path: |
+            api-capture-assistant/dist/api-capture-companion-macos-arm64.zip
+            api-capture-assistant/dist/api-capture-companion-macos-arm64.zip.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-capture-macos-build-diagnostics
+          path: |
+            ${{ runner.temp }}/api-capture-app-logs
+            api-capture-assistant/dist/api-capture-companion-macos-arm64/release.json
+            api-capture-harness/dist/api-capture-harness-darwin-arm64/harness-build.json
+          retention-days: 14
+          if-no-files-found: ignore

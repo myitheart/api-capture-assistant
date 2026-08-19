@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 43110,
+  "deepseekApiKey": "",
+  "deepseekModel": "deepseek-v4-flash",
+  "deepseekBaseUrl": "https://api.deepseek.com",
+  "harnessPackage": "@deepseek-ai/dsh",
+  "maxRequestBytes": 536870912,
+  "analysisTimeoutMinutes": 30,
+  "modifyTimeoutMinutes": 60,
+  "testTimeoutMinutes": 30
+}
