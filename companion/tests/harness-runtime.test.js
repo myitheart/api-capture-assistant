@@ -5,6 +5,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { resolveHarnessRuntime } from "../src/harness/runtime.js";
+import { runtimeNodeName } from "../src/native-harness/platform.js";
 
 const upstreamCommit = "47f943859bef60e4160492346772ded9b24f765a";
 
@@ -22,7 +23,7 @@ test("显式 Harness 目录必须通过协议和关键文件校验，损坏时�
   });
   const entry = "harness/entry.mjs";
   const config = "resources/cordis.yml";
-  const node = "runtime/node.exe";
+  const node = `runtime/${runtimeNodeName()}`;
   const contents = new Map([[entry, "export {};\n"], [config, "plugins: []\n"], [node, "node-runtime"]]);
   for (const [relative, content] of contents) {
     const file = path.join(root, relative);
@@ -38,8 +39,8 @@ test("显式 Harness 目录必须通过协议和关键文件校验，损坏时�
     upstreamCommit,
     forkCommit: lock.forkCommit,
     buildFingerprint: lock.buildFingerprint,
-    platform: "win32",
-    arch: "x64",
+    platform: process.platform,
+    arch: process.arch,
     entry,
     config,
     checksums: Object.fromEntries([...contents].map(([relative, content]) => [relative, digest(content)]))
