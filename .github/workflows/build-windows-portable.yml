@@ -27,7 +27,7 @@ jobs:
         run: >-
           node -e "const fs=require('fs'); const lock=require('./companion/harness.lock.json');
           if(!/^[0-9a-f]{40}$/.test(lock.forkCommit||'')) process.exit(1);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `ref=${lock.forkCommit}\n`)"
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ref=' + lock.forkCommit + '\n')"
 
       - name: Checkout Harness Fork
         uses: actions/checkout@v6
