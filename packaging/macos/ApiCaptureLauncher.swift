@@ -297,7 +297,7 @@ if CommandLine.arguments.contains("--smoke-test") {
 }
 
 let application = NSApplication.shared
-let delegate = AppDelegate()
+private let delegate = AppDelegate()
 application.delegate = delegate
 application.setActivationPolicy(.regular)
 application.run()
