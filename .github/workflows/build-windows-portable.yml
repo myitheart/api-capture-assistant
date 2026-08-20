@@ -1,0 +1,124 @@
+name: Build Windows x64 portable package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      CI: "true"
+      DSH_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout Companion
+        uses: actions/checkout@v6
+        with:
+          path: api-capture-assistant
+
+      - name: Read pinned Harness commit
+        id: harness-lock
+        working-directory: api-capture-assistant
+        shell: pwsh
+        run: >-
+          node -e "const fs=require('fs'); const lock=require('./companion/harness.lock.json');
+          if(!/^[0-9a-f]{40}$/.test(lock.forkCommit||'')) process.exit(1);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `ref=${lock.forkCommit}\n`)"
+
+      - name: Checkout Harness Fork
+        uses: actions/checkout@v6
+        with:
+          repository: myitheart/api-capture-harness
+          ref: ${{ steps.harness-lock.outputs.ref }}
+          path: api-capture-harness
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Set up pnpm
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          node --version
+          pnpm --version
+
+      - name: Install Harness dependencies
+        working-directory: api-capture-harness
+        run: pnpm install --frozen-lockfile
+
+      - name: Test API Capture Harness integration
+        working-directory: api-capture-harness
+        run: >-
+          pnpm exec vitest run
+          scripts/api-capture-target.spec.ts
+          packages/client/api-capture-draft/tests
+          packages/host/api-capture-evidence/tests
+          packages/fs/tool-fs/tests/tools.spec.ts
+
+      - name: Build Harness win32-x64 runtime
+        working-directory: api-capture-harness
+        run: pnpm run build:api-capture-web
+
+      - name: Test Companion
+        working-directory: api-capture-assistant
+        run: npm test
+
+      - name: Build Windows portable package
+        working-directory: api-capture-assistant
+        env:
+          API_CAPTURE_HARNESS_DIST: ${{ github.workspace }}\api-capture-harness\dist\api-capture-harness-win-x64
+        run: npm run build:portable
+
+      - name: Smoke test native Harness protocols
+        working-directory: api-capture-assistant
+        env:
+          API_CAPTURE_PORTABLE_ROOT: ${{ github.workspace }}\api-capture-assistant\dist\api-capture-companion-win-x64
+          API_CAPTURE_NO_OPEN: "1"
+        run: npm run smoke:portable
+
+      - name: Verify Windows archive
+        working-directory: api-capture-assistant
+        shell: pwsh
+        run: |
+          $bundle = "dist/api-capture-companion-win-x64"
+          $archive = "dist/api-capture-companion-win-x64.zip"
+          $checksumFile = "$archive.sha256"
+          if (-not (Test-Path "$bundle/runtime/node.exe")) { throw "runtime/node.exe is missing" }
+          if (-not (Test-Path "$bundle/启动本地研发助手.cmd")) { throw "start script is missing" }
+          if (-not (Test-Path "$bundle/停止本地研发助手.cmd")) { throw "stop script is missing" }
+          if (-not (Test-Path $archive) -or -not (Test-Path $checksumFile)) { throw "portable archive is missing" }
+          $expected = ((Get-Content $checksumFile -Raw) -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expected -ne $actual) { throw "SHA-256 mismatch" }
+          $release = Get-Content "$bundle/release.json" -Raw | ConvertFrom-Json
+          if ($release.product -ne "api-capture-companion-win-x64") { throw "release product mismatch" }
+          if ($release.harness.platform -ne "win32" -or $release.harness.arch -ne "x64") { throw "Harness target mismatch" }
+          tar.exe -tf $archive | Select-Object -First 20
+
+      - name: Upload Windows portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-capture-companion-win-x64
+          path: |
+            api-capture-assistant/dist/api-capture-companion-win-x64.zip
+            api-capture-assistant/dist/api-capture-companion-win-x64.zip.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-capture-windows-build-diagnostics
+          path: |
+            api-capture-assistant/dist/api-capture-companion-win-x64/release.json
+            api-capture-harness/dist/api-capture-harness-win-x64/harness-build.json
+          retention-days: 14
+          if-no-files-found: ignore

@@ -33,6 +33,8 @@ api-capture-harness/               DeepSeek Harness Fork：原生 Web 与 Prompt
 
 发行包已经包含 Node.js Runtime 和固定源码版本构建的 Harness。普通用户不需要安装 Node.js、pnpm、Python、WSL 或 Ubuntu，也不需要部署服务器。程序仅监听 `127.0.0.1`；Harness 配置和会话保存在 `%LOCALAPPDATA%\ApiCaptureAssistant\harness`，现场分析技术目录位于 `%LOCALAPPDATA%\ApiCaptureAssistant\analysis-workspace`，不可变证据包保存在 `%LOCALAPPDATA%\ApiCaptureAssistant\evidence`，升级程序目录不会清除它们。证据包只会在插件的“本地证据管理”中由用户明确删除。
 
+内部发行推荐在 GitHub Actions 手动运行 `Build Windows x64 portable package`，成功后下载 Artifact `api-capture-companion-win-x64`。Artifact 同时包含 ZIP 与 SHA-256 文件；普通用户只需完整解压 ZIP 并双击启动脚本。
+
 ## macOS Apple Silicon 普通用户安装
 
 1. 下载 `api-capture-companion-macos-arm64.zip` 并完整解压。
@@ -83,7 +85,9 @@ npm run build:portable
 npm run smoke:portable
 ```
 
-产物位于 `dist/api-capture-companion-win-x64/` 和同名 ZIP。发行包只包含原生 Harness、内置 Node Runtime、启动/停止脚本和许可证，不打包旧的自定义任务控制台。
+产物位于 `dist/api-capture-companion-win-x64/`、同名 ZIP 和 `.zip.sha256`。发行包只包含原生 Harness、内置 Node Runtime、启动/停止脚本和许可证，不打包旧的自定义任务控制台。
+
+也可以打开本仓库 Actions 页，手动运行 `Build Windows x64 portable package`。工作流使用 `windows-2022` Runner，从 `companion/harness.lock.json` 读取固定 Harness Fork commit，完成源码构建、协议 Smoke Test、ZIP 校验和 Artifact 上传；失败时不会上传可分发 ZIP。
 
 ## 云端构建 macOS 便携包
 

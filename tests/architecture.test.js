@@ -20,12 +20,24 @@ test("便携包只交付原生 Harness 与 Prompt 草稿桥", async () => {
   const smoke = await readFile(new URL("../scripts/smoke-portable.js", import.meta.url), "utf8");
   assert.match(builder, /harness-build\.json/);
   assert.match(builder, /runtime/);
+  assert.match(builder, /sha256/);
   assert.doesNotMatch(builder, /harness-plugin|delivery-protocol|companion\/src\/server/);
   assert.match(smoke, /\/api-capture\/drafts/);
   assert.match(smoke, /\/api-capture\/chat-drafts/);
   assert.match(smoke, /\/api-capture\/evidence-packages/);
   assert.match(smoke, /native-harness/);
   assert.doesNotMatch(smoke, /\/api\/tasks|只读分析|开始修改/);
+});
+
+test("Windows GitHub Actions 从固定 Harness 提交构建并上传便携包", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/build-windows-portable.yml", import.meta.url), "utf8");
+  assert.match(workflow, /workflow_dispatch/);
+  assert.match(workflow, /windows-2022/);
+  assert.match(workflow, /harness-lock\.outputs\.ref/);
+  assert.match(workflow, /build:api-capture-web/);
+  assert.match(workflow, /npm run smoke:portable/);
+  assert.match(workflow, /api-capture-companion-win-x64\.zip\.sha256/);
+  assert.match(workflow, /actions\/upload-artifact@v4/);
 });
 
 test("macOS 便携包提供原生应用和 command 诊断入口", async () => {

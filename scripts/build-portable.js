@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { promisify } from "node:util";
@@ -10,6 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const harnessSource = path.resolve(process.env.API_CAPTURE_HARNESS_DIST || path.join(root, "..", "api-capture-harness", "dist", "api-capture-harness-win-x64"));
 const output = path.join(root, "dist", "api-capture-companion-win-x64");
 const archive = `${output}.zip`;
+const checksumFile = `${archive}.sha256`;
 
 async function main() {
   const lock = JSON.parse(await readFile(path.join(root, "companion", "harness.lock.json"), "utf8"));
@@ -56,6 +58,7 @@ async function main() {
     builtAt: new Date().toISOString()
   }, null, 2)}\n`, "utf8");
   await rm(archive, { force: true });
+  await rm(checksumFile, { force: true });
   await execFileAsync("tar.exe", [
     "-a",
     "-c",
@@ -65,7 +68,9 @@ async function main() {
     path.dirname(output),
     path.basename(output)
   ], { windowsHide: true });
-  console.log(JSON.stringify({ directory: output, archive }, null, 2));
+  const checksum = createHash("sha256").update(await readFile(archive)).digest("hex");
+  await writeFile(checksumFile, `${checksum}  ${path.basename(archive)}\n`, "utf8");
+  console.log(JSON.stringify({ directory: output, archive, checksumFile }, null, 2));
 }
 
 main().catch((error) => {
