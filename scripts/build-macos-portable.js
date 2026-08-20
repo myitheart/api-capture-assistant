@@ -45,7 +45,15 @@ async function copyRuntime(manifest) {
   }
   await cp(path.join(root, "companion", "src", "diagnostics", "stop-companion.js"), path.join(resources, "companion", "src", "diagnostics", "stop-companion.js"));
   for (const directory of ["harness", "runtime"]) {
-    await cp(path.join(harnessSource, directory), path.join(resources, directory), { recursive: true });
+    // npm's portable runtime contains relative node_modules/.bin symlinks. The
+    // default fs.cp behaviour resolves those links against the build checkout,
+    // which leaves absolute Runner paths inside the app and makes codesign
+    // reject the bundle. Preserve the link text so every destination remains
+    // inside Contents/Resources after the distribution is copied.
+    await cp(path.join(harnessSource, directory), path.join(resources, directory), {
+      recursive: true,
+      verbatimSymlinks: true
+    });
   }
   await cp(path.join(harnessSource, "harness-build.json"), path.join(resources, "harness-build.json"));
   await cp(path.join(root, "LICENSE"), path.join(resources, "licenses", "COMPANION_LICENSE"));
